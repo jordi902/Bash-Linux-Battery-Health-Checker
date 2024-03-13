@@ -5,6 +5,13 @@ yellow="\e[0;33m"
 red="\e[0;31m"
 green="\e[0;32m"
 
+test_computer="/sys/class/power_supply"
+
+if [[ -d $test_computer ]]; then
+	echo -e "${red}[!]${noColor} Your computer is not a laptop"
+	exit 1
+fi
+
 test_dir="/sys/class/power_supply/BAT*"
 test_upower=$(which upower &> /dev/null)
 test_acpi=$(which acpi &> /dev/null)
@@ -43,7 +50,7 @@ acpiFunction () {
 	echo $infoAcpi | awk '{print "The health of your battery is: ""'$(echo -e "${green}")'"$NF"'$(echo -e "${noColor}")'"}'
 }
 
-if [[ ! -d $test_dir ]]; then
+if [[ -d $test_dir ]]; then
 	dirFunction
 	exit
 elif [[ ! $test_upower ]]; then
