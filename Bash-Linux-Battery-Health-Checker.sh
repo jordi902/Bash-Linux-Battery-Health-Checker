@@ -5,7 +5,7 @@ yellow="\e[0;33m"
 red="\e[0;31m"
 green="\e[0;32m"
 
-test_dir="/sys/class/power_supply/BAT*"
+test_dir=ls /sys/class/power_supply 2> /dev/null | grep BAT*
 test_upower=$(which upower &> /dev/null)
 test_acpi=$(which acpi &> /dev/null)
 
@@ -22,6 +22,13 @@ upowerFunction () {
 	battery=$(upower --enumerate | grep battery_BAT*)
 	if [[ ! $battery ]]; then
 		echo -e "${red}[!]${noColor}An error ocurred while selecting the battery"
+		exit 1
+	fi
+
+	checkPresent=$(upower -i $battery | awk '{if ($1 == "present:"){print $2}}')
+
+	if [[ ! $checkPresent == "yes" ]]; then
+		echo -e "${red}[!]${noColor} Battery is not installed on the system"
 		exit 1
 	fi
 
@@ -43,11 +50,11 @@ acpiFunction () {
 	echo $infoAcpi | awk '{print "The health of your battery is: ""'$(echo -e "${green}")'"$NF"'$(echo -e "${noColor}")'"}'
 }
 
-if [[ -d $test_dir ]]; then
-	dirFunction
+if [[ ! $test_upower ]]; then
+	upowerFunction
 	exit
-elif [[ ! $test_upower ]]; then
-        upowerFunction
+elif [[ ! $test_dir ]]; then
+        dirFunction
         exit
 elif [[ ! $test_acpi ]]; then
         acpiFunction
